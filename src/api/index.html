@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Job Tracker</title>
+<style>
+  :root{
+    --bg:#08070d; --surface:#100e18; --surface-2:#161322; --line:#221e33; --line-2:#2f2946;
+    --fg:#efedf6; --soft:#c3bfd4; --muted:#7d7895;
+    --violet:#a78bfa; --violet-2:#7c5cf0; --glow:rgba(167,139,250,.16);
+    --applied:#a78bfa; --screen:#60a5fa; --interview:#3ee07f; --offer:#f7b955;
+    --rejected:#ff6b78; --ghosted:#6b6684; --stale:#f7b955;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; background:var(--bg); color:var(--fg);
+    font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    background-image:radial-gradient(900px 420px at 50% -10%, var(--glow), transparent 70%);
+    padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);
+  }
+  .wrap{max-width:980px; margin:0 auto; padding:32px max(16px,env(safe-area-inset-right,0)) 64px max(16px,env(safe-area-inset-left,0))}
+  .mono{font-family:ui-monospace,"SF Mono",Consolas,Menlo,monospace}
+  header{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:end; gap:12px 24px; margin-bottom:22px}
+  .eyebrow{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--violet); margin:0 0 6px}
+  h1{margin:0; font-size:clamp(28px,5vw,38px); letter-spacing:-.03em; line-height:1}
+  .ghost{background:none; border:1px solid var(--line-2); color:var(--muted); border-radius:8px; padding:6px 10px; font:12px ui-monospace,monospace; cursor:pointer}
+  .ghost:hover{color:var(--fg); border-color:var(--violet)}
+
+  .stats{display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:22px}
+  @media (min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}}
+  .stat{background:var(--surface); padding:16px 18px}
+  .stat b{display:block; font-size:28px; letter-spacing:-.03em; line-height:1.1}
+  .stat span{font:11px ui-monospace,monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+  .stat:nth-child(1) b{color:var(--violet)} .stat:nth-child(2) b{color:var(--screen)}
+  .stat:nth-child(3) b{color:var(--interview)} .stat:nth-child(4) b{color:var(--stale)}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px}
+  form.add{display:grid; gap:10px; margin-bottom:22px}
+  @media (min-width:720px){form.add{grid-template-columns:1.2fr 1.2fr 1fr 1fr}}
+  form.add .wide{grid-column:1/-1}
+  label{display:grid; gap:4px; font:11px ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); min-width:0}
+  input,select,textarea{
+    width:100%; background:var(--surface-2); color:var(--fg); border:1px solid var(--line-2);
+    border-radius:9px; padding:10px 11px; font:15px system-ui,sans-serif; min-width:0;
+  }
+  input:focus,select:focus,textarea:focus{outline:none; border-color:var(--violet); box-shadow:0 0 0 3px var(--glow)}
+  textarea{resize:vertical; min-height:42px}
+  .row-actions{display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between}
+  button.primary{background:var(--violet); color:#140a2e; border:0; border-radius:10px; padding:11px 18px; font-weight:700; font-size:15px; cursor:pointer}
+  button.primary:hover{background:#b9a3fc}
+  .msg{font:13px ui-monospace,monospace; color:var(--muted)}
+  .msg.err{color:var(--rejected)}
+
+  .filters{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px}
+  .filters button{background:var(--surface); border:1px solid var(--line-2); color:var(--soft); border-radius:999px; padding:6px 12px; font:12px ui-monospace,monospace; cursor:pointer}
+  .filters button[aria-pressed="true"]{background:var(--violet); color:#140a2e; border-color:var(--violet); font-weight:700}
+
+  .list{display:grid; gap:8px}
+  .app{display:grid; grid-template-columns:1fr auto; gap:8px 14px; align-items:center; background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--c,var(--applied)); border-radius:12px; padding:13px 15px; min-width:0}
+  .app.stale{box-shadow:inset 0 0 0 1px rgba(247,185,85,.25)}
+  .app .main{min-width:0}
+  .app .co{font-weight:700; font-size:16px; overflow-wrap:anywhere}
+  .app .ro{color:var(--soft); overflow-wrap:anywhere}
+  .app .meta{font:12px ui-monospace,monospace; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:4px}
+  .app .meta a{color:var(--violet)}
+  .badge{font:11px ui-monospace,monospace; font-weight:700; letter-spacing:.06em; color:var(--stale); border:1px solid rgba(247,185,85,.45); border-radius:999px; padding:1px 8px}
+  .app .side{display:flex; gap:8px; align-items:center}
+  .app select{width:auto; padding:7px 9px; font-size:13px; border-color:var(--c); color:var(--c); font-weight:700}
+  .app .notes{grid-column:1/-1; font-size:13.5px; color:var(--muted); overflow-wrap:anywhere}
+  .del{background:none; border:1px solid var(--line-2); color:var(--muted); border-radius:8px; width:32px; height:32px; cursor:pointer; font-size:16px; line-height:1}
+  .del:hover{border-color:var(--rejected); color:var(--rejected)}
+  .del.arm{background:var(--rejected); color:#fff; border-color:var(--rejected); width:auto; padding:0 10px; font:12px ui-monospace,monospace; font-weight:700}
+  .empty{text-align:center; color:var(--muted); padding:36px 12px; border:1px dashed var(--line-2); border-radius:14px}
+
+  .gate{max-width:440px; margin:12vh auto 0}
+  .gate h2{margin:0 0 6px; font-size:22px}
+  .gate p{margin:0 0 14px; color:var(--soft)}
+  .gate form{display:grid; gap:10px}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="card gate" id="gate" hidden>
+    <p class="eyebrow mono">job tracker</p>
+    <h2>Enter your access key</h2>
+    <p>Run <span class="mono">terraform output -raw access_key</span> and paste the result. It's saved in this browser.</p>
+    <form id="keyForm">
+      <input id="keyInput" type="password" autocomplete="off" placeholder="access key" required>
+      <button class="primary" type="submit">Unlock</button>
+      <span class="msg" id="keyMsg"></span>
+    </form>
+  </section>
+
+  <main id="app" hidden>
+    <header>
+      <div>
+        <p class="eyebrow mono">job search</p>
+        <h1>Applications</h1>
+      </div>
+      <button class="ghost" id="lock" type="button">lock</button>
+    </header>
+
+    <div class="stats" id="stats">
+      <div class="stat"><b id="sTotal">0</b><span>applications</span></div>
+      <div class="stat"><b id="sWeek">0</b><span>sent this week</span></div>
+      <div class="stat"><b id="sRate">0%</b><span>response rate</span></div>
+      <div class="stat"><b id="sStale">0</b><span>need follow-up</span></div>
+    </div>
+
+    <form class="card add" id="addForm">
+      <label>Company<input name="company" required maxlength="120" placeholder="Capital One"></label>
+      <label>Role<input name="role" required maxlength="120" placeholder="Cloud Support Engineer"></label>
+      <label>Applied<input name="applied_on" type="date"></label>
+      <label>Source
+        <select name="source">
+          <option>LinkedIn</option><option>Company site</option><option>Indeed</option>
+          <option>Recruiter</option><option>Referral</option><option>Other</option>
+        </select>
+      </label>
+      <label class="wide">Link<input name="link" type="url" placeholder="https://… job posting"></label>
+      <label>Location<input name="location" maxlength="80" placeholder="Herndon, VA"></label>
+      <label class="wide" style="grid-column:2/-1">Notes<textarea name="notes" rows="1" maxlength="500" placeholder="Who you talked to, next step…"></textarea></label>
+      <div class="row-actions wide">
+        <span class="msg" id="addMsg"></span>
+        <button class="primary" type="submit">Add application</button>
+      </div>
+    </form>
+
+    <div class="filters" id="filters" role="group" aria-label="Filter by status"></div>
+    <div class="list" id="list"></div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var KEY_NAME = "jobTrackerKey";
+  var state = { apps: [], statuses: [], staleDays: 7, filter: "active" };
+  var colors = { applied:"var(--applied)", screen:"var(--screen)", interview:"var(--interview)",
+                 offer:"var(--offer)", rejected:"var(--rejected)", ghosted:"var(--ghosted)" };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function getKey() { try { return localStorage.getItem(KEY_NAME) || ""; } catch (e) { return window.__k || ""; } }
+  function setKey(k) { try { localStorage.setItem(KEY_NAME, k); } catch (e) { window.__k = k; } }
+  function clearKey() { try { localStorage.removeItem(KEY_NAME); } catch (e) { window.__k = ""; } }
+
+  function api(method, path, body) {
+    return fetch(path, {
+      method: method,
+      headers: { "x-api-key": getKey(), "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (data) {
+        if (r.status === 401) { clearKey(); showGate("That key didn't work."); throw new Error("unauthorized"); }
+        if (!r.ok) throw new Error(data.error || ("HTTP " + r.status));
+        return data;
+      });
+    });
+  }
+
+  function showGate(msg) { $("app").hidden = true; $("gate").hidden = false; $("keyMsg").textContent = msg || ""; $("keyInput").focus(); }
+  function showApp() { $("gate").hidden = true; $("app").hidden = false; }
+
+  // Clamp at 0: the server stamps updated_at, and a phone or PC clock running a few
+  // seconds behind made a brand-new entry read "updated -1d ago".
+  function daysSince(iso) { return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000)); }
+  function isStale(a) { return a.status === "applied" && daysSince(a.updated_at) >= state.staleDays; }
+  function responded(a) {
+    return (a.history || []).some(function (h) { return ["screen","interview","offer","rejected"].indexOf(h.status) >= 0; });
+  }
+
+  function load() {
+    return api("GET", "apps").then(function (d) {
+      state.apps = d.apps; state.statuses = d.statuses; state.staleDays = d.stale_days;
+      showApp(); render();
+    });
+  }
+
+  function render() {
+    var apps = state.apps;
+    var week = apps.filter(function (a) { return daysSince(a.created_at) < 7; }).length;
+    var resp = apps.filter(responded).length;
+    $("sTotal").textContent = apps.length;
+    $("sWeek").textContent = week;
+    $("sRate").textContent = (apps.length ? Math.round(100 * resp / apps.length) : 0) + "%";
+    $("sStale").textContent = apps.filter(isStale).length;
+
+    var f = $("filters"); f.textContent = "";
+    ["active", "all"].concat(state.statuses).forEach(function (s) {
+      var n = apps.filter(function (a) { return match(a, s); }).length;
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = s + " " + n;
+      b.setAttribute("aria-pressed", String(state.filter === s));
+      b.onclick = function () { state.filter = s; render(); };
+      f.appendChild(b);
+    });
+
+    var list = $("list"); list.textContent = "";
+    var shown = apps.filter(function (a) { return match(a, state.filter); });
+    if (!shown.length) {
+      var e = document.createElement("div"); e.className = "empty";
+      e.textContent = apps.length ? "Nothing in this filter." : "No applications yet. Add the first one above.";
+      list.appendChild(e); return;
+    }
+    shown.forEach(function (a) { list.appendChild(row(a)); });
+  }
+
+  function match(a, f) {
+    if (f === "all") return true;
+    if (f === "active") return ["applied","screen","interview","offer"].indexOf(a.status) >= 0;
+    return a.status === f;
+  }
+
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+
+  function row(a) {
+    var r = el("div", "app" + (isStale(a) ? " stale" : ""));
+    r.style.setProperty("--c", colors[a.status] || "var(--applied)");
+    var main = el("div", "main");
+    main.appendChild(el("div", "co", a.company));
+    main.appendChild(el("div", "ro", a.role));
+    var meta = el("div", "meta");
+    meta.appendChild(el("span", null, "applied " + (a.applied_on || "?")));
+    meta.appendChild(el("span", null, "updated " + daysSince(a.updated_at) + "d ago"));
+    if (a.source) meta.appendChild(el("span", null, a.source));
+    if (a.location) meta.appendChild(el("span", null, a.location));
+    if (a.link && /^https?:\/\//.test(a.link)) {
+      var l = el("a", null, "posting ↗"); l.href = a.link; l.target = "_blank"; l.rel = "noopener"; meta.appendChild(l);
+    }
+    if (isStale(a)) meta.appendChild(el("span", "badge", "FOLLOW UP"));
+    main.appendChild(meta);
+    r.appendChild(main);
+
+    var side = el("div", "side");
+    var sel = el("select"); sel.setAttribute("aria-label", "Status for " + a.company);
+    state.statuses.forEach(function (s) { var o = el("option", null, s); o.value = s; if (s === a.status) o.selected = true; sel.appendChild(o); });
+    sel.onchange = function () {
+      api("PATCH", "apps/" + a.app_id, { status: sel.value }).then(function (u) { replace(u); }).catch(alertMsg);
+    };
+    side.appendChild(sel);
+    var del = el("button", "del", "×"); del.type = "button"; del.setAttribute("aria-label", "Delete " + a.company);
+    del.onclick = function () {
+      if (!del.classList.contains("arm")) { del.classList.add("arm"); del.textContent = "delete?"; setTimeout(function () { del.classList.remove("arm"); del.textContent = "×"; }, 3000); return; }
+      api("DELETE", "apps/" + a.app_id).then(function () {
+        state.apps = state.apps.filter(function (x) { return x.app_id !== a.app_id; }); render();
+      }).catch(alertMsg);
+    };
+    side.appendChild(del);
+    r.appendChild(side);
+    if (a.notes) r.appendChild(el("div", "notes", a.notes));
+    return r;
+  }
+
+  function replace(u) { state.apps = state.apps.map(function (x) { return x.app_id === u.app_id ? u : x; }); render(); }
+  function alertMsg(e) { if (e.message !== "unauthorized") { $("addMsg").textContent = e.message; $("addMsg").className = "msg err"; } }
+
+  $("keyForm").onsubmit = function (ev) {
+    ev.preventDefault(); setKey($("keyInput").value.trim()); $("keyInput").value = "";
+    load().catch(function () {});
+  };
+  $("lock").onclick = function () { clearKey(); showGate(""); };
+
+  var today = new Date(); today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+  $("addForm").elements.applied_on.value = today.toISOString().slice(0, 10);
+
+  $("addForm").onsubmit = function (ev) {
+    ev.preventDefault();
+    var f = ev.target, data = {};
+    ["company","role","link","location","source","notes","applied_on"].forEach(function (k) { data[k] = f.elements[k].value; });
+    $("addMsg").textContent = "saving…"; $("addMsg").className = "msg";
+    api("POST", "apps", data).then(function (item) {
+      state.apps.unshift(item); state.filter = "active"; render();
+      ["company","role","link","location","notes"].forEach(function (k) { f.elements[k].value = ""; });
+      $("addMsg").textContent = "added " + item.company; f.elements.company.focus();
+    }).catch(alertMsg);
+  };
+
+  if (getKey()) load().catch(function () {}); else showGate("");
+})();
+</script>
+</body>
+</html>

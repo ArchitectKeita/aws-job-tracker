@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="560" viewBox="0 0 1280 560" role="img" aria-label="Gmail Apps Script posts application emails to API Gateway /ingest, which runs the ingest Lambda; it reads the email with Bedrock Nova or pattern-matching and writes to DynamoDB. The web app uses the same API through the api Lambda. EventBridge Scheduler runs the digest Lambda daily and weekly, which emails through SNS. All of it is defined in Terraform.">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a78bfa"/></marker>
+    <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6b6684"/></marker>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity=".03"/></pattern>
+    <style>
+      .mono{font-family:ui-monospace,'SF Mono',Consolas,Menlo,monospace}
+      .sans{font-family:'Segoe UI',-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif}
+      .box{fill:#100e18;stroke:#2f2946;stroke-width:1.5}
+      .lam{fill:#15112a;stroke:#a78bfa;stroke-width:1.5}
+      .t{font-size:17px;font-weight:700;fill:#f3efff}
+      .s{font-size:12.5px;fill:#8d86a8}
+      .k{font-size:11px;letter-spacing:1.6px;fill:#a78bfa}
+      .lbl{font-size:12px;fill:#ddd2ff}
+      .flow{stroke:#a78bfa;stroke-width:2;fill:none;stroke-dasharray:6 6;animation:f 1.2s linear infinite}
+      .muted{stroke:#6b6684;stroke-width:1.5;fill:none;stroke-dasharray:3 5}
+      @keyframes f{to{stroke-dashoffset:-24}}
+      @media (prefers-reduced-motion:reduce){.flow{animation:none}}
+    </style>
+  </defs>
+  <rect width="1280" height="560" rx="18" fill="#08070d"/>
+  <rect width="1280" height="560" rx="18" fill="url(#grid)"/>
+  <rect x=".5" y=".5" width="1279" height="559" rx="17.5" fill="none" stroke="#a78bfa" stroke-opacity=".22"/>
+
+  <!-- terraform boundary -->
+  <rect x="300" y="40" width="950" height="440" rx="16" fill="none" stroke="#a78bfa" stroke-opacity=".35" stroke-dasharray="6 6"/>
+  <text x="320" y="66" class="mono k">TERRAFORM · 32 RESOURCES · ONE APPLY</text>
+
+  <!-- left: clients -->
+  <rect class="box" x="30" y="110" width="230" height="96" rx="12"/>
+  <text x="48" y="138" class="mono k">YOUR GMAIL</text>
+  <text x="48" y="164" class="sans t">Apps Script</text>
+  <text x="48" y="188" class="mono s">hourly · job emails only</text>
+
+  <rect class="box" x="30" y="300" width="230" height="96" rx="12"/>
+  <text x="48" y="328" class="mono k">PHONE / LAPTOP</text>
+  <text x="48" y="354" class="sans t">Web app</text>
+  <text x="48" y="378" class="mono s">add · update · stats</text>
+
+  <!-- api gateway -->
+  <rect class="box" x="340" y="200" width="220" height="110" rx="12"/>
+  <text x="358" y="228" class="mono k">API GATEWAY</text>
+  <text x="358" y="254" class="sans t">HTTP API</text>
+  <text x="358" y="278" class="mono s">x-api-key on every</text>
+  <text x="358" y="294" class="mono s">data route · throttled</text>
+
+  <!-- lambdas -->
+  <rect class="lam" x="620" y="96" width="240" height="96" rx="12"/>
+  <text x="638" y="124" class="mono k">λ  INGEST</text>
+  <text x="638" y="150" class="sans t">job-tracker-ingest</text>
+  <text x="638" y="174" class="mono s">read email → log / move</text>
+
+  <rect class="lam" x="620" y="300" width="240" height="96" rx="12"/>
+  <text x="638" y="328" class="mono k">λ  API</text>
+  <text x="638" y="354" class="sans t">job-tracker-api</text>
+  <text x="638" y="378" class="mono s">CRUD + serves the page</text>
+
+  <!-- bedrock -->
+  <rect class="box" x="940" y="80" width="280" height="80" rx="12"/>
+  <text x="958" y="106" class="mono k">BEDROCK</text>
+  <text x="958" y="132" class="sans t">Nova Micro</text>
+  <text x="1080" y="132" class="mono s">→ patterns if down</text>
+
+  <!-- dynamo -->
+  <rect class="box" x="940" y="210" width="280" height="96" rx="12" stroke="#a78bfa" stroke-opacity=".7"/>
+  <text x="958" y="238" class="mono k">DYNAMODB</text>
+  <text x="958" y="264" class="sans t">job-tracker-apps</text>
+  <text x="958" y="288" class="mono s">status + full history · PITR</text>
+
+  <!-- digest -->
+  <rect class="lam" x="940" y="360" width="280" height="96" rx="12"/>
+  <text x="958" y="388" class="mono k">λ  DIGEST</text>
+  <text x="958" y="414" class="sans t">job-tracker-digest</text>
+  <text x="958" y="438" class="mono s">9 AM daily · Sun 6 PM</text>
+
+  <!-- scheduler + sns outside bottom -->
+  <rect class="box" x="620" y="420" width="240" height="44" rx="10"/>
+  <text x="638" y="447" class="mono s">EventBridge Scheduler</text>
+  <rect class="box" x="940" y="498" width="280" height="44" rx="10"/>
+  <text x="958" y="525" class="mono s">SNS → your inbox</text>
+
+  <!-- flows -->
+  <path class="flow" d="M260 158 C310 158 300 230 334 238" marker-end="url(#a)"/>
+  <text x="270" y="146" class="mono lbl">POST /ingest</text>
+  <path class="flow" d="M260 348 C310 348 300 290 334 282" marker-end="url(#a)"/>
+  <text x="270" y="372" class="mono lbl">/apps</text>
+  <path class="flow" d="M560 230 C590 230 590 144 614 144" marker-end="url(#a)"/>
+  <path class="flow" d="M560 280 C590 280 590 348 614 348" marker-end="url(#a)"/>
+  <path class="flow" d="M860 130 H934" marker-end="url(#a)"/>
+  <path class="flow" d="M860 160 C900 160 900 240 934 240" marker-end="url(#a)"/>
+  <path class="flow" d="M860 348 C900 348 900 276 934 276" marker-end="url(#a)"/>
+  <path class="muted" d="M860 442 H934" marker-end="url(#am)"/>
+  <path class="muted" d="M1080 360 V312" marker-end="url(#am)"/>
+  <path class="muted" d="M1080 456 V492" marker-end="url(#am)"/>
+</svg>
