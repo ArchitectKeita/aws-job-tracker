@@ -85,7 +85,7 @@ and updated one Lambda, leaving the other 31 resources alone:
 
 Compare that with the console projects, where the same kind of change meant
 pasting code into an editor and remembering to press Deploy — which is exactly
-how [Project 03](https://github.com/ArchitectKeita/aws-fraud-alerts) ended up
+how [Project 03](https://github.com/SaintKeita/aws-fraud-alerts) ended up
 running the wrong code for a while.
 
 Things the code now guarantees that I used to get wrong by hand:
@@ -266,8 +266,8 @@ screenshots/         evidence from the real deploy
 <br>
 
 <p align="center">
-  <sub>Part of <a href="https://github.com/ArchitectKeita">ArchitectKeita</a>'s AWS portfolio ·
-  <a href="https://github.com/ArchitectKeita/aws-ha-web-tier">01 web tier</a> ·
-  <a href="https://github.com/ArchitectKeita/aws-snapshot-cleanup">02 snapshot cleanup</a> ·
-  <a href="https://github.com/ArchitectKeita/aws-fraud-alerts">03 fraud alerts</a></sub>
+  <sub>Part of <a href="https://github.com/SaintKeita">ArchitectKeita</a>'s AWS portfolio ·
+  <a href="https://github.com/SaintKeita/aws-ha-web-tier">01 web tier</a> ·
+  <a href="https://github.com/SaintKeita/aws-snapshot-cleanup">02 snapshot cleanup</a> ·
+  <a href="https://github.com/SaintKeita/aws-fraud-alerts">03 fraud alerts</a></sub>
 </p>
